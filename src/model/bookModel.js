@@ -2,10 +2,20 @@ const mongoose=require('mongoose')
 const userSchema= new mongoose.Schema({
     bookName:String,
     authorName:String,
-    Category:String,
-    Year:Number
+    Year:{
+        type:Number,
+        default:2021
+    },
+    prices:{
+        indianPrice:String,
+        europeanPrice:String
+    },
+    tags:[String],
+    totalPages:Number,
+    stockAvailable:Boolean
+
 
 
 
 },{timestamps: true });
-module.exports=mongoose.model('users',userSchema)
+module.exports=mongoose.model('vishal',userSchema)
