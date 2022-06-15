@@ -55,6 +55,7 @@ const getUserData = async function (req, res) {
   // Input 2 is the same secret with which the token was generated
   // Check the value of the decoded token yourself
   let decodedToken = jwt.verify(token, "functionup-thorium");
+  console.log(decodedToken)
   if (!decodedToken)
     return res.send({ status: false, msg: "token is invalid" });
 
@@ -80,8 +81,30 @@ const updateUser = async function (req, res) {
   }
 
   let userData = req.body;
-  let updatedUser = await userModel.findOneAndUpdate({ _id: userId }, userData);
+  let updatedUser = await userModel.findOneAndUpdate({ _id: userId }, userData,{new:true });
   res.send({ status: updatedUser, data: updatedUser });
+};
+const deleted = async function (req, res) {
+ 
+  let tokenS = req.headers["x-Auth-token"];
+  if (!tokenS) tokenS = req.headers["x-auth-token"];
+  //If no token is present in the request header return error
+  if (!tokenS) return res.send({ status: false, msg: "token must be present" });
+  
+
+  res.setHeader("x-auth-token", tokenS);
+ 
+  let userId = req.params.userId;
+  let user = await userModel.findById(userId);
+ 
+  if (!user) {
+    return res.send("No such user exists");
+  }
+
+  // let userData = req.body;
+  let updatedUser = await userModel.findOneAndUpdate({ _id: userId }, {isDeleted:false},{new:true});
+  res.send({ status: updatedUser, data: updatedUser });
+
 };
 
 const postMessage = async function (req, res) {
@@ -90,8 +113,13 @@ const postMessage = async function (req, res) {
     // Check if the token present is a valid token
     // Return a different error message in both these cases
     let token = req.headers["x-auth-token"]
+    console.log(token)
     if(!token) return res.send({status: false, msg: "token must be present in the request header"})
     let decodedToken = jwt.verify(token, 'functionup-thorium')
+console.log(decodedToken)
+console.log(decodedToken.token)
+
+
 
     if(!decodedToken) return res.send({status: false, msg:"token is not valid"})
     
@@ -120,3 +148,4 @@ module.exports.getUserData = getUserData;
 module.exports.updateUser = updateUser;
 module.exports.loginUser = loginUser;
 module.exports.postMessage = postMessage
+module.exports.deleted = deleted
