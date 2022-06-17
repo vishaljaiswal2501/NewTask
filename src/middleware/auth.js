@@ -6,12 +6,12 @@ const authenticate = function(req, res, next) {
     console.log(token)
     
  
-     if(token===undefined) return res.send({status: false, msg: "token must be present in the request header"})
+     if(token===undefined) return res.status(404).send({status: false, msg: "token must be present in the request header"})
     
     let decodedToken = jwt.verify(token, 'functionup-thorium')
 
     if(!decodedToken) {
-        return res.send({status: false, msg:"token is not valid"})
+        return res.status(401).send({status: false, msg:"token is not valid"})
     }else{
     next()
     }
@@ -29,7 +29,7 @@ const authorise = async function(req, res, next) {
     let decodedToken = jwt.verify(token, 'functionup-thorium')
 
     if(decodedToken.userId!==req.params.userId) {
-        return res.send({status: false, msg:"UserId or token is wrong"})
+        return res.status(401).send({status: false, msg:"UserId or token is wrong"})
     }else{
     next()
 }
