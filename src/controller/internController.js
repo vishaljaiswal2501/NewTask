@@ -20,7 +20,7 @@ console.log(data)
         }
         // Checking stauts of required fields-- (name,email and mobile) if all will present then code will proceed
 
-        if (!(data.name) || !(data.email) || !(data.email) || !(data.collegeName))
+        if (!(data.name) || !(data.email) || !(data.mobile) || !(data.collegeName))
             return res.status(400).send({ status: false, msg: "name, email,mobile, collegeId must be required" })
 
         //Checking presence and format of name 
@@ -73,7 +73,7 @@ console.log(data)
 const checkCollege=await collegeModel.findOne({name:data.collegeName});
 console.log(checkCollege)
 if(!checkCollege) 
-return res.status(404).send({ status: false, data: "this college does not exist" });
+return res.status(400).send({ status: false, data: "this college does not exist" });
 collegeId=checkCollege._id
 
 const details={name,email,mobile,collegeId}
@@ -110,9 +110,9 @@ const getCollegeInternDetails = async function (req, res) {
         const interns = await InternModel.find({ collegeId: college._id }).select({ name: 1, email: 1, mobile: 1 })
 
         // Handling error of No data presence in interns of requested college
-        if (interns.length == 0) {
-            return res.status(400).send({ status: false, message: "No interns are found in the given college" })
-        }
+        // if (interns.length == 0) {
+        //     return res.status(400).send({ status: false, message: "No interns are found in the given college" })
+        // }
         res.status(200).send({ status: true, "data": { "name": college.name, "fullName": college.fullName, "logoLink": college.logoLink, "interns": interns } })
 
     } catch (err) {
