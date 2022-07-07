@@ -109,7 +109,7 @@ const getBookDetails = async (req, res) => {
             return res.status(400).send({ status: false, message: "request query cannot remain empty" })
         }
     } catch (error) {
-        res.status(500).send({ status: false, message: error.message })
+        res.status(500).send({ status: false, message: error.message });
     }
 }
 
@@ -127,6 +127,18 @@ const getBooksById = async function (req, res) {
     }
 
     return res.status(200).send({ status: true, data: getData })
+}
+
+
+const updateBook = async (req,res) => {
+    try {
+        const {title, excerpt, releaseAt, ISBN} = req.body;
+        filter = {isDeleted: false}
+        
+        
+    } catch (error) {
+        res.status(500).send({ status: false, message: error.message });     
+    }
 }
 
 
