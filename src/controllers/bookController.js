@@ -114,34 +114,50 @@ const getBookDetails = async (req, res) => {
 }
 
 const getBooksById = async function (req, res) {
-    const bookId = req.params.bookId;
-    let bookIdCheck = await BookModel.findById({ _id: bookId });
-    console.log(bookIdCheck)
-    if (!bookIdCheck) return res.status(400).send({ status: false, message: "no book present from this BOOKID" })
+    try {
+        const bookId = req.params.bookId;
+        let bookIdCheck = await BookModel.findById({ _id: bookId });
+        console.log(bookIdCheck)
+        if (!bookIdCheck) return res.status(400).send({ status: false, message: "no book present from this BOOKID" })
 
-    let Reviews = await ReviewModel.find({ bookId: bookIdCheck._id }).select({ bookId: 1, reviewedBy: 1, reviewedAt: 1, rating: 1, review: 1 })
-    console.log(Reviews)
-    let getData = {
-        _id: bookIdCheck._id, title: bookIdCheck.title, excerpt: bookIdCheck.excerpt,
-        userId: bookIdCheck.userId, category: bookIdCheck.category, isDeleted: bookIdCheck.isDeleted, reviews: bookIdCheck.reviews, releasedAt: bookIdCheck.releasedAt, reviewsData: Reviews
+        let Reviews = await ReviewModel.find({ bookId: bookIdCheck._id }).select({ bookId: 1, reviewedBy: 1, reviewedAt: 1, rating: 1, review: 1 })
+        console.log(Reviews)
+        let getData = {
+            _id: bookIdCheck._id, title: bookIdCheck.title, excerpt: bookIdCheck.excerpt,
+            userId: bookIdCheck.userId, category: bookIdCheck.category, isDeleted: bookIdCheck.isDeleted, reviews: bookIdCheck.reviews, releasedAt: bookIdCheck.releasedAt, reviewsData: Reviews
+        }
+    } catch (error) {
+        res.status(500).send({ status: false, message: error.message });
     }
-
     return res.status(200).send({ status: true, data: getData })
 }
 
 
-const updateBook = async (req,res) => {
+const updateBook = async (req, res) => {
     try {
-        const {title, excerpt, releaseAt, ISBN} = req.body;
-        filter = {isDeleted: false}
-        
-        
+        const { title, excerpt, releaseAt, ISBN } = req.body;
+        const bookId = req.params.bookId
+        let  filter = { _id: bookId, isDeleted: false }
+        if (Object.keys(req.body).length != 0) {
+            const findBook = await BookModel.findOne(filter)
+            console.log(findBook)
+            if(!findBook)
+            return res.status(400).send({status: false, message: "No book data is found"})
+           
+            const updated = await BookModel.findOneAndUpdate({_id: bookId}, req.body, {new: true})
+            res.status(200).send({status: true, message: 'Success', data: updated})
+        } else {
+            return res.status(400).send({ status: false, message: "request body cannot remain empty" })
+        }
+
+
     } catch (error) {
-        res.status(500).send({ status: false, message: error.message });     
+        res.status(500).send({ status: false, message: error.message });
     }
 }
 
 
 module.exports.createBooks = createBooks;
 module.exports.getBookDetails = getBookDetails;
-module.exports.getBooksById = getBooksById
+module.exports.getBooksById = getBooksById;
+module.exports.updateBook = updateBook;
