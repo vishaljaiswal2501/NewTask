@@ -1,6 +1,8 @@
 const express = require('express');
+const cors = require('cors');
+const multer = require('multer')
 const bodyParser = require('body-parser');
-const route = require('./routes/route.js');
+const router = require('./routes/route.js');
 const { default: mongoose } = require('mongoose');
 const app = express();
 
@@ -14,7 +16,7 @@ mongoose.connect("mongodb+srv://VishalJaiswal:vishalashu@newcluster.9n9kfap.mong
 .catch ( err => console.log(err) )
 
 
-app.use('/', route);
+app.use('/', router);
 app.use(cors())
 app.use(multer().any());
 
