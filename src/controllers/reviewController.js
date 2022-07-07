@@ -23,4 +23,4 @@ const updateReview = async(req, res) => {
     }
 }
 
-module.exports.createReviews = createReviews
+module.exports.createReviews = createReviews;

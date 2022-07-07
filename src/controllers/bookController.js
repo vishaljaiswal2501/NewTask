@@ -1,19 +1,19 @@
 const BookModel = require('../models/bookModel.js');
 const ReviewModel = require("../models/reviewModel.js")
 const UserModel = require("../models/userModel.js");
+const moment = require('moment');
 
 
 const { objectValue, keyValue, isbnIsValid, nameRegex } = require('../validators/validation.js')
 
 const createBooks = async (req, res) => {
     try {
-        const filedAllowed = ["title", "excerpt", "userId", "ISBN", "category", "subcategory", "reviews"]
-        const data = req.body;
-
+        const filedAllowed = ["title", "excerpt", "userId", "ISBN", "category", "subcategory"]
+              
         if (!keyValue(req.body))
             return res.status(400).send({ status: false, message: "body should not remain empty" })
 
-        const keyOf = Object.keys(data);
+        const keyOf = Object.keys(req.body);
         const receivedKey = filedAllowed.filter((x) => !keyOf.includes(x));
         if (receivedKey.length) {
             return res.status(400).send({ status: false, msg: `${receivedKey} field is missing` });
@@ -21,12 +21,14 @@ const createBooks = async (req, res) => {
 
         const { title, excerpt, userId, ISBN, category, subcategory, reviews, isDeleted } = req.body;
 
-        let findUserId = await UserModel.findOne({ _id: userId })
+        const findUserId = await UserModel.findOne({ _id: userId })
         if (!findUserId)
             return res.status(404).send({ status: false, message: "No userId is found" })
 
         if (!objectValue(title))
             return res.status(400).send({ status: false, message: "title must be present" })
+
+        
 
         if (!nameRegex(title))
             return res.status(400).send({ status: false, message: "Please provide valid title, it should not contains any special characters and numbers" })
@@ -43,16 +45,16 @@ const createBooks = async (req, res) => {
         if (!objectValue(subcategory))
             return res.status(400).send({ status: false, message: "subcategory cannot remains empty" })
 
+        //  if(subcategory.trim().length === 0)
+        //return res.status(400).send({ status: false, message: "subcategory shouldn't be empty" })
+
         if (!objectValue(reviews))
             return res.status(400).send({ status: false, message: "review cannot remains empty" })
-
-        // if (!/^[0-9]*\.?[0-9]*$/.test(reviews))
-        //     return res.status(400).send({ status: false, message: "it only contaions numbers" })
 
         if (!isbnIsValid(ISBN))
             return res.status(400).send({ status: false, message: "Invalid ISBN" })
 
-
+        // if(moment(releaseAt, "YYYY-MM-DD"))
 
         if (isDeleted === " ") {
             if (!objectValue(isDeleted))
@@ -121,10 +123,17 @@ const getBooksById = async function (req, res) {
         if (!bookIdCheck) return res.status(400).send({ status: false, message: "no book present from this BOOKID" })
 
         let Reviews = await ReviewModel.find({ bookId: bookIdCheck._id }).select({ bookId: 1, reviewedBy: 1, reviewedAt: 1, rating: 1, review: 1 })
-        console.log(Reviews)
+        //console.log(Reviews)
         let getData = {
-            _id: bookIdCheck._id, title: bookIdCheck.title, excerpt: bookIdCheck.excerpt,
-            userId: bookIdCheck.userId, category: bookIdCheck.category, isDeleted: bookIdCheck.isDeleted, reviews: bookIdCheck.reviews, releasedAt: bookIdCheck.releasedAt, reviewsData: Reviews
+            _id: bookIdCheck._id,
+            title: bookIdCheck.title,
+            excerpt: bookIdCheck.excerpt,
+            userId: bookIdCheck.userId,
+            category: bookIdCheck.category,
+            isDeleted: bookIdCheck.isDeleted,
+            reviews: bookIdCheck.reviews,
+            releasedAt: bookIdCheck.releasedAt,
+            reviewsData: Reviews
         }
     } catch (error) {
         res.status(500).send({ status: false, message: error.message });
@@ -137,15 +146,18 @@ const updateBook = async (req, res) => {
     try {
         const { title, excerpt, releaseAt, ISBN } = req.body;
         const bookId = req.params.bookId
-        let  filter = { _id: bookId, isDeleted: false }
+        let filter = { _id: bookId, isDeleted: false }
         if (Object.keys(req.body).length != 0) {
             const findBook = await BookModel.findOne(filter)
-            console.log(findBook)
-            if(!findBook)
-            return res.status(400).send({status: false, message: "No book data is found"})
-           
-            const updated = await BookModel.findOneAndUpdate({_id: bookId}, req.body, {new: true})
-            res.status(200).send({status: true, message: 'Success', data: updated})
+            //console.log(findBook)
+            if (!findBook)
+                return res.status(400).send({ status: false, message: "No book data is found" })
+
+            // findBook.isDeleted = true;
+            // findBook.deletedAt = Date();
+
+            const updated = await BookModel.findOneAndUpdate({ _id: bookId }, findBook, { new: true })
+            res.status(200).send({ status: true, message: 'Success', data: updated })
         } else {
             return res.status(400).send({ status: false, message: "request body cannot remain empty" })
         }
@@ -157,7 +169,36 @@ const updateBook = async (req, res) => {
 }
 
 
+const deleteById = async (req, res) => {
+    try {
+        // const { title, excerpt, releaseAt, ISBN } = req.body;
+        const bookId = req.params.bookId
+        let filter = { _id: bookId, isDeleted: false }
+
+        // if (Object.keys(req.body).length != 0) {
+        const findBook = await BookModel.findById(filter)
+        if (!findBook)
+            return res.status(400).send({ status: false, message: "No book data is found" })
+
+        findBook.isDeleted = true;
+        findBook.deletedAt = Date();
+
+        const deletedBooKs = await BookModel.findByIdAndUpdate({ _id: bookId }, findBook, { new: true })
+        res.status(200).send({ status: true, message: 'Success', data: deletedBooKs })
+        // } else {
+        //     return res.status(400).send({ status: false, message: "request body cannot remain empty" })
+        // }
+
+
+    } catch (error) {
+        res.status(500).send({ status: false, message: error.message });
+    }
+}
+
+
+
 module.exports.createBooks = createBooks;
 module.exports.getBookDetails = getBookDetails;
 module.exports.getBooksById = getBooksById;
 module.exports.updateBook = updateBook;
+module.exports.deleteById = deleteById;

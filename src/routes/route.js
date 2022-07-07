@@ -13,5 +13,6 @@ router.get('/books', BookController.getBookDetails);
 router.get('/books/:bookId', BookController.getBooksById)
 router.post('/login', UserController.loginUser)
 router.put('/books/:bookId', BookController.updateBook)
+router.delete('/books/:bookId', BookController.deleteById)
 
 module.exports = router;
