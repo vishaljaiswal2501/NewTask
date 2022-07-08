@@ -19,7 +19,7 @@ const bookSchema = new mongoose.Schema({
     ISBN: {
         type: String,
         required: true,
-        unique: true,
+        unique: true
     },
     category: {
         type: String,
