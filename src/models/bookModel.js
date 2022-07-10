@@ -5,11 +5,13 @@ const bookSchema = new mongoose.Schema({
     title: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        trim: true
     },
     excerpt: {
         type: String,
         required: true,
+        trim: true
     },
     userId: {
         type: ObjectId,
@@ -19,7 +21,8 @@ const bookSchema = new mongoose.Schema({
     ISBN: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        trim: true
     },
     category: {
         type: String,
@@ -34,9 +37,11 @@ const bookSchema = new mongoose.Schema({
         default: 0,
         comment: 'Holds number of reviews of this book'
     },
-     deletedAt: {
+
+    deletedAt: {
         type: Date
     }, 
+    
     isDeleted: {
         type: Boolean,
         default: false

@@ -1,17 +1,18 @@
 const mongoose = require('mongoose');
 
 const isValidObjectId = (objectId) => {
-    return mongoose.Types.ObjectId.isValid(objectId);
+    if(mongoose.Types.ObjectId.isValid(objectId)) return true;
+    return false;
   };
 
 const objectValue = (value) => {
-    if(typeof value === undefined || value === null) return false;
-    if(typeof value === "string" && value.trim().length === 0) return false;
+    if(typeof value === "undefined" || value === "null") return false;
+    if(typeof value === "String" && value.trim().length === 0) return false;
     return true;
     
 } 
 
-const keyValue = (value) => {
+const forBody = (value) => {
     if(Object.keys(value).length === 0) return false;
     return true;
 }
@@ -23,9 +24,12 @@ const nameRegex = (value) => {
 }
 
 const mobileRegex = (value) => {
-    let mobileRegex =  /^[+0]{0,2}(91)?[0-9]{10}$/;
-    if(mobileRegex.test(value))
-    return true;
+    let phoneRegex = /^([+]\d{2})?\d{10}$/;
+    // if (typeof value == "String" && value.trim().length == 0) return 'Mobile number cannot be empty'
+    // if (value.startsWith("0") || value.startsWith("1") || value.startsWith("2") || value.startsWith("3") || value.startsWith("4") || value.startsWith("5")) return `Mobile number cannot start with ${value[0]}`
+    // if (value.length != 10) return 'Mobile number must be 10 digits'
+    if (phoneRegex.test(value)) //return "Mobile number can only contains numbers";
+     return true;
 }
 
 const mailRegex = (value) => {
@@ -46,6 +50,17 @@ const isbnIsValid = (value) => {
     return true;
 }
 
+const pinValid = (value) => {
+    let pinregex = /^(\d{4}|^\d{6})$/;
+    if(pinregex.test(value))
+    return true;
+}
 
-module.exports = {isValidObjectId, objectValue,keyValue,nameRegex,mailRegex,mobileRegex,passwordRegex, isbnIsValid}
+const dateFormate = (value) => {
+    let dateRegex = /^\d{4}\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])$/;
+    if(dateRegex.test(value)) 
+    return true;
+}
+
+module.exports = {isValidObjectId, objectValue,forBody,nameRegex,mailRegex,mobileRegex,passwordRegex, isbnIsValid, pinValid, dateFormate}
 
