@@ -7,7 +7,7 @@ const isValidObjectId = (objectId) => {
 
 const objectValue = (value) => {
     if(typeof value === "undefined" || value === "null") return false;
-    if(typeof value === "String" && value.trim().length === 0) return false;
+    if(typeof value === "string" && value.trim().length === 0) return false;
     return true;
     
 } 
@@ -18,8 +18,19 @@ const forBody = (value) => {
 }
 
 const nameRegex = (value) => {
-    let nameRegex = /^[A-Za-z\s]{1,}[\.]{0,1}[A-Za-z\s]{0,}$/;
+    let nameRegex =  /^[A-Za-z\s]{1,}[\.]{0,1}[A-Za-z\s]{0,}$/;                
     if(nameRegex.test(value))
+    return true;
+}
+
+const titleRegex = (value) => {
+    let nameRegex =  /[^A-Za-z0-9]+/;                //  /^[A-Za-z\s]{1,}[\.]{0,1}[A-Za-z\s]{0,}$/;
+    if(nameRegex.test(value))
+    return true;
+}
+const addressValid = (value) => {
+    let streetRegex = /^[#.0-9a-zA-Z\s,-]+$/;
+    if(streetRegex.test(value))
     return true;
 }
 
@@ -54,7 +65,7 @@ const pinValid = (value) => {
     let pinregex = /^(\d{4}|^\d{6})$/;
     if(pinregex.test(value))
     return true;
-}
+}                    
 
 const dateFormate = (value) => {
     let dateRegex = /^\d{4}\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])$/;
@@ -62,5 +73,5 @@ const dateFormate = (value) => {
     return true;
 }
 
-module.exports = {isValidObjectId, objectValue,forBody,nameRegex,mailRegex,mobileRegex,passwordRegex, isbnIsValid, pinValid, dateFormate}
+module.exports = {isValidObjectId, objectValue,forBody,nameRegex,titleRegex,addressValid,mailRegex,mobileRegex,passwordRegex, isbnIsValid, pinValid, dateFormate}
 

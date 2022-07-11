@@ -1,11 +1,13 @@
-const UserModel = require("../models/userModel")
+const UserModel = require("../models/userModel");
 const jwt = require("jsonwebtoken");
 
-const { objectValue, forBody, nameRegex, mailRegex, mobileRegex, passwordRegex, pinValid } = require('../validators/validation.js')
+const { objectValue, forBody, nameRegex, addressValid, mailRegex, mobileRegex, passwordRegex, pinValid } = require('../validators/validation.js')
 
 const createUser = async function (req, res) {
     try {
-
+        if (!forBody(req.body))
+        return res.status(400).send({ status: false, message: "body should not remain empty" });
+        
         const { title, name, phone, email, password, address } = req.body;
 
         let street = address.street;
@@ -13,9 +15,6 @@ const createUser = async function (req, res) {
         let pincode = address.pincode;
 
         const filedAllowed = ["title", "name", "phone", "email", "password"];
-
-        if (!forBody(req.body))
-            return res.status(400).send({ status: false, message: "body should not remain empty" });
 
         const keyOf = Object.keys(req.body);
         const receivedKey = filedAllowed.filter((x) => !keyOf.includes(x));
@@ -64,7 +63,7 @@ const createUser = async function (req, res) {
         if (!passwordRegex(password))
             return res.status(400).send({ status: false, message: "Please enter a password which contains min 8 letters & max 15 letters, at least a symbol, upper and lower case letters and a number" });
 
-        // new 
+    
         if (address) {
             if (typeof address != "object" || Object.keys(address).length == 0)
                 return res.status(400).send({ status: false, message: "Address is not a type of object or it is empty" });
@@ -72,7 +71,7 @@ const createUser = async function (req, res) {
         if (!objectValue(street))
             return res.status(400).send({ status: false, message: "street must be present" });
 
-        if (!nameRegex(street))  //name regex
+        if (!addressValid(street))  //name regex
             return res.status(400).send({ status: false, message: "Please enter valid street name" });
 
         if (!objectValue(city))
@@ -112,8 +111,7 @@ const loginUser = async function (req, res) {
             return res.status(400).send({ status: false, message: "please add the passWord" });
 
         let User = await UserModel.findOne({ email: userName, password: passWord });
-        // console.log(author)
-
+       
         if (!User)
             return res.status(401).send({ status: false, message: "email id or the password is not correct" });
 
