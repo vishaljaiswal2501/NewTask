@@ -11,30 +11,33 @@ const createReviews = async (req, res) => {
         const data = req.body;
         const bookId = req.params.bookId;
 
-        const bookIdCheck = await BookModel.findById({ _id: bookId, isDeleted: false });
-        if (bookIdCheck.isDeleted == true)
-            return res.status(404).send({ status: false, message: "Book does not exist" });
-
-        if (!forBody(data))
-            return res.status(400).send({ status: false, message: "body should not remain empty" });
-
-        if (!mongoose.isValidObjectId(bookId))
+        if (!isValidObjectId(bookId))
             return res.status(400).send({ status: false, message: "BookId is not valid" });
 
+        if (!forBody(data))
+            return res.status(400).send({ status: false, message: "Body should not remain empty" });
+
+        const bookIdCheck = await BookModel.findOne({ _id: bookId, isDeleted: false });
+        if (!bookIdCheck)
+            return res.status(404).send({ status: false, message: "Book does not exist" });
+
+        if (!data.reviewedBy)
+            data.reviewedBy = "Guest";
+
         if (!objectValue(data.reviewedBy))
-            return res.status(400).send({ status: false, message: "reviewedBy name must be present" });
+            return res.status(400).send({ status: false, message: "ReviewedBy name must be present" });
 
         if (!nameRegex(data.reviewedBy))
             return res.status(400).send({ status: false, message: "Please provide valid reviewedBy, it should not contains any special characters and numbers" });
 
         if (!objectValue(data.rating))
-            return res.status(400).send({ status: false, message: "rating must be present and value should not be zero" });
+            return res.status(400).send({ status: false, message: "Rating must be present and value should not be zero" });
 
         if (typeof data.rating != "number")
-            return res.status(400).send({ status: false, message: "Please enter a number & it should be in the range of 1 - 5 only " });
+            return res.status(400).send({ status: false, message: "Please enter a number" });
 
         if (!(data.rating <= 5))
-            return res.status(400).send({ status: false, message: "Please enter a number & it should be in the range of 1 - 5 only0000 " });
+            return res.status(400).send({ status: false, message: "It should be in the range of 1 - 5 only" });
 
         data.reviewedAt = Date.now();
         data.bookId = bookId;
@@ -76,44 +79,44 @@ const updateReviews = async function (req, res) {
 
         let reviewIdCheck = await ReviewModel.findOne({ _id: reviewId });
         if (!reviewIdCheck)
-            return res.status(400).send({ status: false, message: "ReviewId does not exist" });
+            return res.status(404).send({ status: false, message: "ReviewId does not exist" });
 
         if (!isValidObjectId(bookId))
             return res.status(400).send({ status: false, message: "BookId is not in correct format" });
 
         let bookIdCheck = await BookModel.findOne({ _id: bookId, isDeleted: false });
         if (!bookIdCheck)
-            return res.status(400).send({ status: false, message: "bookId does not exist" });
+            return res.status(404).send({ status: false, message: "BookId does not exist" });
 
         const data = req.body;
 
         if (!forBody(data))
-            return res.status(400).send({ status: false, message: "body should not remain empty" });
+            return res.status(400).send({ status: false, message: "Body should not remain empty" });
 
         if (!objectValue(data.reviewedBy))
-            return res.status(400).send({ status: false, message: "reviewedBy name must be present" });
+            return res.status(400).send({ status: false, message: "ReviewedBy name must be present" });
 
         if (!nameRegex(data.reviewedBy))
             return res.status(400).send({ status: false, message: "Please provide valid reviewer's name, it should not contains any special characters and numbers" });
 
         if (!objectValue(data.review))
-            return res.status(400).send({ status: false, message: "review must be present" });
+            return res.status(400).send({ status: false, message: "Review must be present" });
 
         if (!nameRegex(data.review))
             return res.status(400).send({ status: false, message: "Please provide valid review, it should not contains any special characters and numbers" });
 
         if (!objectValue(data.rating))
-            return res.status(400).send({ status: false, message: "rating must be present" });
+            return res.status(400).send({ status: false, message: "Rating must be present" });
 
         if (typeof data.rating != "number")
-            return res.status(400).send({ status: false, message: "Please enter a number & it should be in the range of 1 - 5 only " });
+            return res.status(400).send({ status: false, message: "Please enter a number only" });
 
         if (!(data.rating <= 5))
-            return res.status(400).send({ status: false, message: "Please enter a number & it should be in the range of 1 - 5 only0000 " });
+            return res.status(400).send({ status: false, message: "It should be in the range of 1 - 5 only " });
 
         let update = await ReviewModel.findOneAndUpdate({ _id: reviewId }, data, { new: true });
-        const finalData = await ReviewModel.findById(update).select({ __v: 0, createdAt: 0, updatedAt: 0, isDeleted: 0 })
-        console.log(update)
+        const finalData = await ReviewModel.findById(update).select({ __v: 0, createdAt: 0, updatedAt: 0, isDeleted: 0 });
+
         let getData = {
             _id: bookIdCheck._id,
             title: bookIdCheck.title,
@@ -127,6 +130,7 @@ const updateReviews = async function (req, res) {
             updatedAt: bookIdCheck.updatedAt,
             reviewsData: [finalData]
         };
+
         return res.status(200).send({ status: true, message: "Success", data: getData });
     } catch (error) {
         res.status(500).send({ status: false, message: error.message });
@@ -142,16 +146,30 @@ const deleteReview = async function (req, res) {
         const bookId = req.params.bookId;
         const reviewId = req.params.reviewId;
         let bookIdCheck = await BookModel.findById({ _id: bookId });
-        if (!bookIdCheck) return res.status(400).send({ status: false, message: "bookId does not exist" });
-
+        if (!bookIdCheck) return res.status(404).send({ status: false, message: "BookId does not exist" });
 
         let reviewIdCheck = await ReviewModel.findById({ _id: reviewId });
-        if (!reviewIdCheck) return res.status(400).send({ status: false, message: "reviewId does not exist" })
-        if (bookIdCheck.isDeleted == true || reviewIdCheck.isDeleted == true) return res.status(400).send({ status: false, message: "book or bookreview does not exist" })
+        if (!reviewIdCheck) return res.status(400).send({ status: false, message: "ReviewId does not exist" })
+        if (bookIdCheck.isDeleted == true || reviewIdCheck.isDeleted == true)
+            return res.status(404).send({ status: false, message: "Book or bookreview does not exist" })
 
         if (reviewIdCheck.isDeleted == false) {
             let update = await ReviewModel.findOneAndUpdate({ _id: reviewId }, { isDeleted: true }, { new: true })
             let deleteReviewCount = await BookModel.findOneAndUpdate({ _id: bookIdCheck._id }, { $inc: { "reviews": -1 } })
+
+            // let getData = {
+            //     _id: deleteReviewCount._id,
+            //     title: deleteReviewCount.title,
+            //     excerpt: deleteReviewCount.excerpt,
+            //     userId: deleteReviewCount.userId,
+            //     category: deleteReviewCount.category,
+            //     isDeleted: deleteReviewCount.isDeleted,
+            //     reviews: deleteReviewCount.reviews,
+            //     releasedAt: deleteReviewCount.releasedAt,
+            //     createdAt: deleteReviewCount.createdAt,
+            //     updatedAt: deleteReviewCount.updatedAt,
+            //     reviewsData: [update]
+            // };
             console.log(deleteReviewCount)
             return res.status(200).send({ status: true, message: "Success", data: update })
         }

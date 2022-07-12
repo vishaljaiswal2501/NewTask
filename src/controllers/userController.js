@@ -8,7 +8,7 @@ const { objectValue, forBody, nameRegex, addressValid, mailRegex, mobileRegex, p
 const createUser = async function (req, res) {
     try {
         if (!forBody(req.body))
-            return res.status(400).send({ status: false, message: "body should not remain empty" });
+            return res.status(400).send({ status: false, message: "Body should not remain empty" });
 
         const { title, name, phone, email, password, address } = req.body;
 
@@ -25,35 +25,35 @@ const createUser = async function (req, res) {
         }
 
         if (!objectValue(title))
-            return res.status(400).send({ status: false, message: "title must be present" });
+            return res.status(400).send({ status: false, message: "Title name must be present" });
 
-        if (req.body.title != 'Mr' && req.body.title != 'Mrs' && req.body.title != 'Miss')
+        if (title != 'Mr' && title != 'Mrs' && title != 'Miss')
             return res.status(400).send({ status: false, message: "Please enter valid title from these options only [Mr, Mrs, Miss]" });
 
         if (!objectValue(name))
-            return res.status(400).send({ status: false, message: "name must be present" });
+            return res.status(400).send({ status: false, message: "Name must be present" });
 
         if (!nameRegex(name))
             return res.status(400).send({ status: false, message: "Please provide valid name, it should not contains any special characters and numbers" });
 
-        const phoneNo = await UserModel.findOne({ phone: req.body.phone });
-
-        if (!objectValue(phone))
-            return res.status(400).send({ status: false, message: "phone must be present" });
+        const phoneNo = await UserModel.findOne({ phone: phone });
 
         if (phoneNo)
-            return res.status(400).send({ status: false, message: "phone number is already taken" });
+            return res.status(400).send({ status: false, message: "Phone number is already taken" });
+
+        if (!objectValue(phone))
+            return res.status(400).send({ status: false, message: "Phone number must be present" });
 
         if (!mobileRegex(phone))
             return res.status(400).send({ status: false, message: "Please provide valid mobile number" });
 
-        const emailId = await UserModel.findOne({ email: req.body.email });
-
-        if (!objectValue(email))
-            return res.status(400).send({ status: false, message: "EmailId must be present" });
+        const emailId = await UserModel.findOne({ email: email });
 
         if (emailId)
             return res.status(400).send({ status: false, message: "EmailId already taken" });
+
+        if (!objectValue(email))
+            return res.status(400).send({ status: false, message: "EmailId must be present" });
 
         if (!mailRegex(email))
             return res.status(400).send({ status: false, message: "Please enter valid email" });
@@ -71,25 +71,23 @@ const createUser = async function (req, res) {
                 return res.status(400).send({ status: false, message: "Address is not a type of object or it is empty" });
         }
         if (!objectValue(street))
-            return res.status(400).send({ status: false, message: "street must be present" });
+            return res.status(400).send({ status: false, message: "Street name must be present" });
 
         if (!addressValid(street))
             return res.status(400).send({ status: false, message: "Please enter valid street name" });
 
         if (!objectValue(city))
-            return res.status(400).send({ status: false, message: "city must be present" });
+            return res.status(400).send({ status: false, message: "City name must be present" });
 
         if (!nameRegex(city))
             return res.status(400).send({ status: false, message: "Please enter valid city name" });
 
         if (!objectValue(pincode))
-            return res.status(400).send({ status: false, message: "pincode must be present" });
+            return res.status(400).send({ status: false, message: "Pincode must be present" });
 
         if (!pinValid(pincode))
-            return res.status(400).send({ status: false, message: "pincode is not valid" });
+            return res.status(400).send({ status: false, message: "Pincode is not valid" });
 
-
-        if (!req.body) return res.status(400).send({ status: false, message: "user details is required" });
         let savedData = await UserModel.create(req.body)
         return res.status(201).send({ status: true, message: "Success", data: savedData });
 
@@ -107,20 +105,18 @@ const loginUser = async function (req, res) {
         let passWord = req.body.password;
 
         if (Object.keys(data).length == 0)
-            return res.status(400).send({ status: false, message: "Please Provide EmailId & Password" });
+            return res.status(400).send({ status: false, message: "Body is empty please provide data " });
 
-        if (!userName)
-            return res.status(400).send({ status: false, message: "please add the userEmail" });
+        if (!objectValue(userName))
+            return res.status(400).send({ status: false, message: "Please enter the userName" });
 
-        if (!passWord)
-            return res.status(400).send({ status: false, message: "please add the passWord" });
+        if (!objectValue(passWord))
+            return res.status(400).send({ status: false, message: "Please enter the passowrd" });
 
         let User = await UserModel.findOne({ email: userName, password: passWord });
 
         if (!User)
-            return res.status(401).send({ status: false, message: "email id or the password is not correct" });
-
-
+            return res.status(400).send({ status: false, message: "EmailId or the Password is not correct please give the valid one" });
 
         let token = jwt.sign(
             {
