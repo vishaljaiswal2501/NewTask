@@ -1,6 +1,4 @@
 const express = require('express');
-const cors = require('cors');
-const multer = require('multer')
 const bodyParser = require('body-parser');
 const router = require('./routes/route.js');
 const { default: mongoose } = require('mongoose');
@@ -10,15 +8,13 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 mongoose.connect("mongodb+srv://VishalJaiswal:vishalashu@newcluster.9n9kfap.mongodb.net/group60Database?retryWrites=true&w=majority", {
-    useNewUrlParser: true
+  useNewUrlParser: true
 })
-.then( () => console.log("MongoDb is connected"))
-.catch ( err => console.log(err) )
+  .then(() => console.log("MongoDb is connected"))
+  .catch(err => console.log(err))
 
 
 app.use('/', router);
-app.use(cors())
-app.use(multer().any());
 
 app.all('/**', (req, res) => {
   res.status(404).send({ status: false, message: 'Page Not Found!' });
