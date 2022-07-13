@@ -130,7 +130,8 @@ const getBookDetails = async (req, res) => {
         } else {
 
             const findData = await BookModel.find({isDeleted:false}).select({ _id: 1, title: 1, excerpt: 1, userId: 1, category: 1, reviews: 1, releasedAt: 1 })
-            return res.status(200).send({ status: true, message: "booklist" ,data:findData})
+            let sortbook = findData.sort((a, b) => (a['title'] || "").toString().localeCompare((b['title'] || "").toString()));
+            return res.status(200).send({ status: true, message: "booklist" ,data:sortbook})
 
         }
     } catch (error) {
