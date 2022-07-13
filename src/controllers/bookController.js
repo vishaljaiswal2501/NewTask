@@ -54,9 +54,6 @@ const createBooks = async (req, res) => {
         if (!objectValue(category))
             return res.status(400).send({ status: false, message: "Category cannot remains empty" });
 
-
-
-
         const check_isbn = await BookModel.findOne({ ISBN: req.body.ISBN });
 
         if (check_isbn)
@@ -129,9 +126,9 @@ const getBookDetails = async (req, res) => {
             res.status(200).send({ status: true, message: 'Book list', data: sortbook })
         } else {
 
-            const findData = await BookModel.find({isDeleted:false}).select({ _id: 1, title: 1, excerpt: 1, userId: 1, category: 1, reviews: 1, releasedAt: 1 })
+            const findData = await BookModel.find({ isDeleted: false }).select({ _id: 1, title: 1, excerpt: 1, userId: 1, category: 1, reviews: 1, releasedAt: 1 })
             let sortbook = findData.sort((a, b) => (a['title'] || "").toString().localeCompare((b['title'] || "").toString()));
-            return res.status(200).send({ status: true, message: "booklist" ,data:sortbook})
+            return res.status(200).send({ status: true, message: "booklist", data: sortbook })
 
         }
     } catch (error) {
@@ -150,10 +147,11 @@ const getBooksById = async function (req, res) {
         if (!isValidObjectId(bookId))
             return res.status(400).send({ status: false, message: "Please provide valid bookId" });
 
-        let bookIdCheck = await BookModel.findOne({ _id: bookId });
 
+        let bookIdCheck = await BookModel.findOne({ _id: bookId, isDeleted: false });
 
-        if (bookIdCheck.isDeleted==true) return res.status(404).send({ status: false, message: "no book present from this BOOKID" });
+        if (!bookIdCheck)
+            return res.status(404).send({ status: false, message: "no book present from this BOOKID" });
 
 
         let { _id, title, excerpt, userId, category, subcategory, isDeleted, reviews, releasedAt, createdAt, updatedAt } = bookIdCheck;
@@ -245,7 +243,7 @@ const deleteById = async (req, res) => {
         findBook.deletedAt = Date();
 
         const deletedBooKs = await BookModel.findByIdAndUpdate({ _id: bookId }, findBook, { new: true });
-        res.status(200).send({ status: true, message: 'Success', data: deletedBooKs });
+        res.status(200).send({ status: true, message: 'Success', data: "BookId is successfully deleted" });
     } catch (error) {
         res.status(500).send({ status: false, message: error.message });
     }

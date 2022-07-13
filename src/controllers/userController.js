@@ -12,9 +12,9 @@ const createUser = async function (req, res) {
 
         const { title, name, phone, email, password, address } = req.body;
 
-        let street = address.street;
-        let city = address.city;
-        let pincode = address.pincode;
+        // let street = address.street;
+        // let city = address.city;
+        // let pincode = address.pincode;
 
         const filedAllowed = ["title", "name", "phone", "email", "password"];
 
@@ -65,28 +65,32 @@ const createUser = async function (req, res) {
         if (!passwordRegex(password))
             return res.status(400).send({ status: false, message: "Please enter a password which contains min 8 letters & max 15 letters, at least a symbol, upper and lower case letters and a number" });
 
+        if (!Object.keys(address).length == 0) {
+            if (typeof address != "object")
+                return res.status(400).send({ status: false, message: "Address is not a type of object" });
 
-        if (address) {
-            if (typeof address != "object" || Object.keys(address).length == 0)
-                return res.status(400).send({ status: false, message: "Address is not a type of object or it is empty" });
+            if (!objectValue(address?.street))
+                return res.status(400).send({ status: false, message: "Street name must be present" });
+
+            if (!addressValid(address.street))
+                return res.status(400).send({ status: false, message: "Please enter valid street name" });
+
+            if (address.city) {
+                if (!objectValue(address?.city))
+                    return res.status(400).send({ status: false, message: "City name must be present" });
+
+                if (!nameRegex(address.city))
+                    return res.status(400).send({ status: false, message: "Please enter valid city name" });
+            }
+            if (address.pincode) {
+
+                if (!objectValue(address?.pincode))
+                    return res.status(400).send({ status: false, message: "Pincode must be present" });
+
+                if (!pinValid(address.pincode))
+                    return res.status(400).send({ status: false, message: "Pincode is not valid" });
+            }
         }
-        if (!objectValue(street))
-            return res.status(400).send({ status: false, message: "Street name must be present" });
-
-        if (!addressValid(street))
-            return res.status(400).send({ status: false, message: "Please enter valid street name" });
-
-        if (!objectValue(city))
-            return res.status(400).send({ status: false, message: "City name must be present" });
-
-        if (!nameRegex(city))
-            return res.status(400).send({ status: false, message: "Please enter valid city name" });
-
-        if (!objectValue(pincode))
-            return res.status(400).send({ status: false, message: "Pincode must be present" });
-
-        if (!pinValid(pincode))
-            return res.status(400).send({ status: false, message: "Pincode is not valid" });
 
         let savedData = await UserModel.create(req.body)
         return res.status(201).send({ status: true, message: "Success", data: savedData });
