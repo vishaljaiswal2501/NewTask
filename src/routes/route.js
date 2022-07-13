@@ -16,7 +16,7 @@ router.post('/login', UserController.loginUser);
 
 //===================================================[BOOK ROUTE HANDLER]===========================================================
 
-router.post('/books', Middleware.authentication, Middleware.authorisation, BookController.createBooks);
+router.post('/books', Middleware.authentication, BookController.createBooks);
 router.get('/books', BookController.getBookDetails);
 router.get('/books/:bookId', BookController.getBooksById);
 router.put('/books/:bookId', Middleware.authentication, Middleware.authorisation, BookController.updateBook);

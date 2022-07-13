@@ -28,24 +28,13 @@ let authentication = function (req, res, next) {
 }
 
 const authorisation = async function (req, res, next) {
-
-    let userLoggedIn = req.bookIdNew
-    let usersId = req.body.userId
-    if (!usersId)
-        return res.status(400).send({ status: false, message: "body should not remain empty" })
-    console.log(userLoggedIn)
     try {
+        let userLoggedIn = req.bookIdNew
         let bookId = req.params.bookId
-
-        if (bookId) {
-            let usersId = await BookModel.findOne({ _id: bookId }).select({ userId: 1, _id: 0 })
-            if (!usersId) return res.status(403).send({ status: false, msg: 'Please enter valid book ID' })
-            let newAuth = usersId.userId.valueOf()
-            if (newAuth != userLoggedIn) return res.send({ status: false, msg: 'User logged is not allowed to modify the requested users data' })
-        }
-
-        else if (userLoggedIn != usersId) return res.send({ status: false, msg: 'User logged is not allowed to modify the requested users data' })
-
+        let usersId = await BookModel.findOne({ _id: bookId }).select({ userId: 1, _id: 0 })
+        if (!usersId) return res.status(400).send({ status: false, msg: 'Please enter valid book ID' })
+        let newAuth = usersId.userId.valueOf()
+        if (newAuth != userLoggedIn) return res.status(403).send({ status: false, msg: 'User logged is not allowed to modify the requested users data' })
         next()
     } catch (err) {
         res.status(500).send({ status: false, msg: err.message })

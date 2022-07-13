@@ -10,7 +10,8 @@ const createReviews = async (req, res) => {
     try {
         const data = req.body;
         const bookId = req.params.bookId;
-
+        if (!mongoose.isValidObjectId(bookId))
+        return res.status(400).send({ status: false, message: "BookId is not valid" });
         const bookIdCheck = await BookModel.findById({ _id: bookId, isDeleted: false });
         if (bookIdCheck.isDeleted == true)
             return res.status(404).send({ status: false, message: "Book does not exist" });
@@ -18,12 +19,11 @@ const createReviews = async (req, res) => {
         if (!forBody(data))
             return res.status(400).send({ status: false, message: "body should not remain empty" });
 
-        if (!mongoose.isValidObjectId(bookId))
-            return res.status(400).send({ status: false, message: "BookId is not valid" });
-
+       
+            if(!data.reviewedBy)
+            {data.reviewedBy="Guest"}
         if (!objectValue(data.reviewedBy))
-            return res.status(400).send({ status: false, message: "reviewedBy name must be present" });
-
+       
         if (!nameRegex(data.reviewedBy))
             return res.status(400).send({ status: false, message: "Please provide valid reviewedBy, it should not contains any special characters and numbers" });
 
@@ -40,7 +40,7 @@ const createReviews = async (req, res) => {
         data.bookId = bookId;
 
         const savedData = await ReviewModel.create(data);
-
+        const update = await BookModel.findOneAndUpdate({ _id: bookIdCheck._id }, { $inc: { "reviews": 1 } },{new:true});
         let finalData = {
             _id: bookIdCheck._id,
             title: bookIdCheck.title,
@@ -56,7 +56,7 @@ const createReviews = async (req, res) => {
         };
 
         res.status(201).send({ status: true, message: 'Success', data: finalData });
-        const update = await BookModel.findOneAndUpdate({ _id: bookIdCheck._id }, { $inc: { "reviews": 1 } });
+        
 
     } catch (error) {
         res.status(500).send({ status: false, message: error.message })
@@ -71,21 +71,22 @@ const updateReviews = async function (req, res) {
         const bookId = req.params.bookId;
         const reviewId = req.params.reviewId;
 
-        if (!isValidObjectId(reviewId))
-            return res.status(400).send({ status: false, message: "ReviewId is not in correct format" });
-
-        let reviewIdCheck = await ReviewModel.findOne({ _id: reviewId });
-        if (!reviewIdCheck)
-            return res.status(400).send({ status: false, message: "ReviewId does not exist" });
-
         if (!isValidObjectId(bookId))
             return res.status(400).send({ status: false, message: "BookId is not in correct format" });
+        if (!isValidObjectId(reviewId))
+            return res.status(400).send({ status: false, message: "ReviewId is not in correct format" });
+            let bookIdCheck = await BookModel.findOne({ _id: bookId, isDeleted: false });
+            if (!bookIdCheck)
+                return res.status(400).send({ status: false, message: "book data is deleted" });
 
-        let bookIdCheck = await BookModel.findOne({ _id: bookId, isDeleted: false });
-        if (!bookIdCheck)
-            return res.status(400).send({ status: false, message: "bookId does not exist" });
+        let reviewIdCheck = await ReviewModel.findOne({ _id: reviewId });
+       
 
-        const data = req.body;
+       
+        if(bookIdCheck.isDeleted==false && reviewIdCheck.isDeleted==false){
+       
+
+        let data = req.body;
 
         if (!forBody(data))
             return res.status(400).send({ status: false, message: "body should not remain empty" });
@@ -128,6 +129,9 @@ const updateReviews = async function (req, res) {
             reviewsData: [finalData]
         };
         return res.status(200).send({ status: true, message: "Success", data: getData });
+    }
+    else
+    res.status(404).send({ status: false, message:"Review data is not found"});
     } catch (error) {
         res.status(500).send({ status: false, message: error.message });
     }
@@ -141,19 +145,37 @@ const deleteReview = async function (req, res) {
     try {
         const bookId = req.params.bookId;
         const reviewId = req.params.reviewId;
+        if (!isValidObjectId(bookId))
+            return res.status(400).send({ status: false, message: "BookId is not in correct format" });
+        if (!isValidObjectId(reviewId))
+            return res.status(400).send({ status: false, message: "ReviewId is not in correct format" });
         let bookIdCheck = await BookModel.findById({ _id: bookId });
         if (!bookIdCheck) return res.status(400).send({ status: false, message: "bookId does not exist" });
 
 
         let reviewIdCheck = await ReviewModel.findById({ _id: reviewId });
         if (!reviewIdCheck) return res.status(400).send({ status: false, message: "reviewId does not exist" })
-        if (bookIdCheck.isDeleted == true || reviewIdCheck.isDeleted == true) return res.status(400).send({ status: false, message: "book or bookreview does not exist" })
+        if (bookIdCheck.isDeleted == true || reviewIdCheck.isDeleted == true) return res.status(404).send({ status: false, message: "book or bookreview does not exist" })
 
         if (reviewIdCheck.isDeleted == false) {
             let update = await ReviewModel.findOneAndUpdate({ _id: reviewId }, { isDeleted: true }, { new: true })
-            let deleteReviewCount = await BookModel.findOneAndUpdate({ _id: bookIdCheck._id }, { $inc: { "reviews": -1 } })
+            let deleteReviewCount = await BookModel.findOneAndUpdate({ _id: bookIdCheck._id }, { $inc: { "reviews": -1 } },{new:true})
             console.log(deleteReviewCount)
-            return res.status(200).send({ status: true, message: "Success", data: update })
+            
+        let finalData = {
+            _id: bookIdCheck._id,
+            title: bookIdCheck.title,
+            excerpt: bookIdCheck.excerpt,
+            userId: bookIdCheck.userId,
+            category: bookIdCheck.category,
+            isDeleted: bookIdCheck.isDeleted,
+            reviews: bookIdCheck.reviews,
+            releasedAt: bookIdCheck.releasedAt,
+            createdAt: bookIdCheck.createdAt,
+            updatedAt: bookIdCheck.updatedAt,
+            reviewsData: [update]
+        };
+            return res.status(200).send({ status: true, message: "Success", data: finalData })
         }
 
     } catch (error) {

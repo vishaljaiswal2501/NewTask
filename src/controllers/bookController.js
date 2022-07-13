@@ -9,6 +9,7 @@ const { isValidObjectId, objectValue, forBody, isbnIsValid, nameRegex, titleRege
 
 const createBooks = async (req, res) => {
     try {
+
         const filedAllowed = ["title", "excerpt", "userId", "ISBN", "category", "subcategory", "releasedAt"];
 
         if (!forBody(req.body))
@@ -39,21 +40,20 @@ const createBooks = async (req, res) => {
         if (!nameRegex(excerpt))
             return res.status(400).send({ status: false, message: "Please provide valid excerpt, it should not contains any special characters and numbers" });
 
+
         if (!isValidObjectId(userId))
             return res.status(404).send({ status: false, message: "Please provide valid userId" });
 
-        const findUserId = await UserModel.findOne({ _id: userId });
-        if (!findUserId)
-            return res.status(404).send({ status: false, message: "No userId is found" });
 
         if (!objectValue(userId))
             return res.status(400).send({ status: false, message: "UserId must be present it cannot remain empty" });
-
+        let userLoggedIn = req.bookIdNew
+        let usersId = req.body.userId
+        if (userLoggedIn != usersId) return res.status(403).send({ status: false, msg: 'User logged is not allowed to modify the requested users data' })
         if (!objectValue(category))
             return res.status(400).send({ status: false, message: "category cannot remains empty" });
 
-        if (!objectValue(subcategory))
-            return res.status(400).send({ status: false, message: "subcategory cannot remains empty" });
+
 
         const check_isbn = await BookModel.findOne({ ISBN: req.body.ISBN });
 
@@ -66,12 +66,21 @@ const createBooks = async (req, res) => {
         if (!objectValue(releasedAt))
             return res.status(400).send({ status: false, message: "releasedAt cannot remains empty" });
 
+        if (subcategory) {
+            for (let i = 0; i < subcategory.length; i++) {
+                if (!objectValue(subcategory[i]))
+                    return res.status(400).send({ status: false, message: "subcategory cannot remains empty" });
+            }
+        }
+
+        if (subcategory.length == 0)
+            return res.status(400).send({ status: false, message: "subCategory cannot be  empty array" });
+
         if (isDeleted === " ") {
             if (!objectValue(isDeleted))
                 return res.status(400).send({ status: false, message: "isDeleted must be present" });
         }
-        if (isDeleted && typeof isDeleted !== Boolean)
-            return res.status(400).send({ status: false, message: "isDeleted should be either true or false!" });
+
 
         const savedData = await BookModel.create(req.body);
 
@@ -91,9 +100,9 @@ const getBookDetails = async (req, res) => {
         const filter = { isdeleted: false }
         if (Object.keys(req.query).length !== 0) {
 
-            if (req.query.subcategory) {
-                req.query.subcategory = { $in: req.query.subcategory.split(",") }
-            }
+            // if (req.query.subcategory) {
+            //     req.query.subcategory = { $in: req.query.subcategory.split(",") }
+            // }
 
             filter['$or'] = [
                 { userId: req.query.userId },
@@ -105,7 +114,7 @@ const getBookDetails = async (req, res) => {
                     return res.status(404).send({ status: false, message: "Please provide valid userId" });
 
 
-            const findData = await BookModel.find(filter).select({ _id: 1, title: 1, excerpt: 1, userId: 1, category: 1, reviews: 1, releasedAt: 1 });
+            const findData = await BookModel.find(filter).select({ _id: 1, title: 1, excerpt: 1, userId: 1, category: 1, reviews: 1, releasedAt: 1 })
 
             if (!findData.length) {
                 return res.status(404).send({ status: false, message: "no data found for books" })
@@ -113,7 +122,8 @@ const getBookDetails = async (req, res) => {
 
             res.status(200).send({ status: true, message: 'Book list', data: findData })
         } else {
-            return res.status(400).send({ status: false, message: "request query cannot remain empty" })
+            const findData = await BookModel.find({isDeleted:false}).select({ _id: 1, title: 1, excerpt: 1, userId: 1, category: 1, reviews: 1, releasedAt: 1 })
+            return res.status(200).send({ status: true, message: "booklist" ,data:findData})
         }
     } catch (error) {
         res.status(500).send({ status: false, message: error.message });
@@ -133,7 +143,7 @@ const getBooksById = async function (req, res) {
 
         let bookIdCheck = await BookModel.findById({ _id: bookId });
 
-        if (!bookIdCheck) return res.status(400).send({ status: false, message: "no book present from this BOOKID" });
+        if (bookIdCheck.isDeleted==true) return res.status(404).send({ status: false, message: "no book present from this BOOKID" });
 
         let { _id, title, excerpt, userId, category, subcategory, isDeleted, reviews, releasedAt, createdAt, updatedAt } = bookIdCheck;
 
@@ -156,11 +166,12 @@ const updateBook = async (req, res) => {
     try {
         const { title, excerpt, releaseAt, ISBN } = req.body;
         const bookId = req.params.bookId
+
         let filter = { _id: bookId, isDeleted: false }
         if (Object.keys(req.body).length != 0) {
             const findBook = await BookModel.findOne(filter);
             if (!findBook)
-                return res.status(400).send({ status: false, message: "No book data is found" });
+                return res.status(404).send({ status: false, message: "No book data is found" });
 
 
             const check_title = await BookModel.findOne({ title: title })
@@ -216,7 +227,7 @@ const deleteById = async (req, res) => {
 
         const findBook = await BookModel.findOne(filter)
         if (!findBook)
-            return res.status(400).send({ status: false, message: "This book is not found or deleted." });
+            return res.status(404).send({ status: false, message: "This book is not found or deleted." });
 
         findBook.isDeleted = true;
         findBook.deletedAt = Date();
