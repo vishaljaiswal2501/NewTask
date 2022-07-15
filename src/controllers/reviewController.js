@@ -35,7 +35,7 @@ const createReviews = async (req, res) => {
         if (typeof data.rating != "number")
             return res.status(400).send({ status: false, message: "Please enter a number" });
 
-        if (!(data.rating <= 5))
+        if (!(data.rating <= 5&&data.rating >= 1))
             return res.status(400).send({ status: false, message: "It should be in the range of 1 - 5 only" });
 
         data.reviewedAt = Date.now();
@@ -85,7 +85,8 @@ const updateReviews = async function (req, res) {
 
 
         let reviewIdCheck = await ReviewModel.findOne({ _id: reviewId });
-       
+        if (!reviewIdCheck)
+        return res.status(400).send({ status: false, message: "reviewID is not VALID" });
   if(bookIdCheck.isDeleted==false && reviewIdCheck.isDeleted==false){
        
 
@@ -112,9 +113,8 @@ const updateReviews = async function (req, res) {
         if (typeof data.rating != "number")
             return res.status(400).send({ status: false, message: "Please enter a number only" });
 
-        if (!(data.rating <= 5))
-            return res.status(400).send({ status: false, message: "It should be in the range of 1 - 5 only " });
-
+            if (!(data.rating <= 5&&data.rating >= 1))
+            return res.status(400).send({ status: false, message: "It should be in the range of 1 - 5 only" });
         let update = await ReviewModel.findOneAndUpdate({ _id: reviewId }, data, { new: true });
         const finalData = await ReviewModel.findById(update).select({ __v: 0, createdAt: 0, updatedAt: 0, isDeleted: 0 });
 

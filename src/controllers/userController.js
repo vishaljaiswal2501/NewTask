@@ -6,15 +6,13 @@ const { objectValue, forBody, nameRegex, addressValid, mailRegex, mobileRegex, p
 //===================================================[API:FOR CREATING USER DB]===========================================================
 
 const createUser = async function (req, res) {
-    try {
+     try {
         if (!forBody(req.body))
             return res.status(400).send({ status: false, message: "Body should not remain empty" });
 
         const { title, name, phone, email, password, address } = req.body;
 
-        let street = address.street;
-        let city = address.city;
-        let pincode = address.pincode;
+       
 
         const filedAllowed = ["title", "name", "phone", "email", "password"];
 
@@ -69,7 +67,9 @@ const createUser = async function (req, res) {
         if (address) {
             if (typeof address != "object" || Object.keys(address).length == 0)
                 return res.status(400).send({ status: false, message: "Address is not a type of object or it is empty" });
-        }
+         let street = address.street;
+        let city = address.city;
+        let pincode = address.pincode;
         if (!objectValue(street))
             return res.status(400).send({ status: false, message: "Street name must be present" });
 
@@ -84,9 +84,11 @@ const createUser = async function (req, res) {
 
         if (!objectValue(pincode))
             return res.status(400).send({ status: false, message: "Pincode must be present" });
-
         if (!pinValid(pincode))
-            return res.status(400).send({ status: false, message: "Pincode is not valid" });
+          return res.status(400).send({ status: false, message: "Pincode is not valid" });
+
+        }
+         
 
         let savedData = await UserModel.create(req.body)
         return res.status(201).send({ status: true, message: "Success", data: savedData });
@@ -121,7 +123,7 @@ const loginUser = async function (req, res) {
         let token = jwt.sign(
             {
                 userId: User._id.toString(),
-                iat: new Date().getTime(),
+                iat: Math.floor(Date.now() / 1000),
                 exp: Math.floor(Date.now() / 1000) + (60 * 60)
 
 

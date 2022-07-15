@@ -1,7 +1,7 @@
 const BookModel = require('../models/bookModel.js');
 const ReviewModel = require("../models/reviewModel.js")
 const UserModel = require("../models/userModel.js");
-
+const {uploadFile}=require("../aws/aws.js")
 
 const { isValidObjectId, objectValue, forBody, isbnIsValid, nameRegex, titleRegex, dateFormate } = require('../validators/validation.js');
 
@@ -9,10 +9,10 @@ const { isValidObjectId, objectValue, forBody, isbnIsValid, nameRegex, titleRege
 //===================================================[API:FOR CREATING BOOK DB]===========================================================
 
 const createBooks = async (req, res) => {
-    try {
-
+  try{
+        let files=req.files;
         const filedAllowed = ["title", "excerpt", "userId", "ISBN", "category", "subcategory", "releasedAt"];
-
+const { title, excerpt, userId, ISBN, category, subcategory, reviews, isDeleted,releasedAt}=req.body
         if (!forBody(req.body))
             return res.status(400).send({ status: false, message: "Body should not remain empty" });
 
@@ -21,8 +21,18 @@ const createBooks = async (req, res) => {
         if (receivedKey.length) {
             return res.status(400).send({ status: false, msg: `${receivedKey} field is missing` });
         }
+        
+        if(files && files.length>0){
+            var url=await uploadFile(files[0]);
+           
+        }
+        else{
+            res.status(400).send("NO FILES FOUND");
+        }
+        //  var { title, excerpt, userId, ISBN, category, subcategory, reviews, isDeleted, releasedAt,bookCover:url} = req.body;
+// const data={
+//     title,excerpt,userId,ISBN,category,subcategory,isDeleted,releasedAt:Date.now(),bookCover:url};
 
-        const { title, excerpt, userId, ISBN, category, subcategory, reviews, isDeleted, releasedAt } = req.body;
 
         const check_title = await BookModel.findOne({ title: title });
 
@@ -86,12 +96,15 @@ const createBooks = async (req, res) => {
                 return res.status(400).send({ status: false, message: "isDeleted must be present" });
         }
 
-
-        const savedData = await BookModel.create(req.body);
+        const data={
+            title,excerpt,userId,ISBN,category,subcategory,isDeleted,releasedAt:Date.now(),bookCover:url};
+        
+        const savedData = await BookModel.create(data);
 
         const finalData = await BookModel.findById(savedData._id).select({ __v: 0, createdAt: 0, updatedAt: 0 });
-        res.status(201).send({ status: true, message: 'Success', data: finalData });
-    } catch (error) {
+        
+        return res.status(201).send({status:true,msg:"Successful",data:finalData})
+    }catch (error) {
         res.status(500).send({ status: false, message: error.message });
     }
 
