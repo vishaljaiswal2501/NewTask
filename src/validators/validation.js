@@ -59,7 +59,9 @@ const isbnIsValid = (value) => {
 }
 
 const pinValid = (value) => {
+
     let pinregex =/^([0-9]{4}|[0-9]{6})$/;
+
     if (pinregex.test(value))
         return true;
 }

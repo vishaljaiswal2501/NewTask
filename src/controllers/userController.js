@@ -12,7 +12,7 @@ const createUser = async function (req, res) {
 
         const { title, name, phone, email, password, address } = req.body;
 
-       
+
 
         const filedAllowed = ["title", "name", "phone", "email", "password"];
 
@@ -63,6 +63,8 @@ const createUser = async function (req, res) {
         if (!passwordRegex(password))
             return res.status(400).send({ status: false, message: "Please enter a password which contains min 8 letters & max 15 letters, at least a symbol, upper and lower case letters and a number" });
 
+      
+
 
         if (address) {
             if (typeof address != "object" || Object.keys(address).length == 0)
@@ -89,6 +91,7 @@ const createUser = async function (req, res) {
 
         }
          
+
 
         let savedData = await UserModel.create(req.body)
         return res.status(201).send({ status: true, message: "Success", data: savedData });
