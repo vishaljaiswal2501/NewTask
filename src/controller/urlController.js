@@ -1,3 +1,4 @@
+
 const validUrl = require('valid-url')
 
 const shortid=require('shortid')
@@ -12,8 +13,10 @@ const isValid = function (str) {
 const regex = /(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%.\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%\+.~#?&//=]*)/g
 
 const shortUrl = async function (req, res) {
+    try{
     const { longUrl } = req.body
-    // if(!isValid(longUrl)) return res.status(400).send({status:false,message:"LongUrl cannot be empty"})
+    if(!isValid(longUrl)) return res.status(400).send({ status: false, message: "LongUrl cannot be Empty" })
+    
     if (!longUrl.match(regex)) return res.status(400).send({ status: false, message: "LongUrl is invalid" })
     const foundUrl = await urlModel.findOne({ longUrl })
     if (foundUrl){
@@ -37,14 +40,19 @@ const shortUrl = async function (req, res) {
     }
 
     res.status(201).send({ data: data })
+}catch(err){
+    return res.status(500).send({status:false,message:err.message})
+}
 }
 
 const urlCode = async function (req, res) {
     try{
     const urlCode = req.params.urlCode
-    if (!shortid.isValid(urlCode)) return res.status(400).send({ status: false, message: "urlCode is invalid" })
+    const regex=/^[A-Za-z0-9_-]{7,14}$/
+
+    if (!urlCode.match(regex)) return res.status(400).send({ status: false, message: "urlCode is invalid" })
     const foundCode = await urlModel.findOne({ urlCode: urlCode })
-    //console.log(foundCode.longUrl)
+
     if (!foundCode) return res.status(404).send({ status: false, message: "urlCode is not found" })
     return res.status(302).redirect(foundCode.longUrl)
 }catch(err){
@@ -53,3 +61,4 @@ const urlCode = async function (req, res) {
 }
 
 module.exports = { shortUrl, urlCode }
+
