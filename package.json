@@ -4,6 +4,7 @@
     "mongoose": "^6.4.4",
     "nodemon": "^2.0.19",
     "short-id": "^0.1.0-1",
+    "shortid": "^2.2.16",
     "valid-url": "^1.0.9"
   },
   "name": "url_shortner",
