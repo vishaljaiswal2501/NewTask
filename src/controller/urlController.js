@@ -1,30 +1,31 @@
-
-const validUrl = require('valid-url')
-
 const shortid=require('shortid')
 const urlModel = require('../model/urlModel')
 const baseUrl = 'http://localhost:3000'
 
-const isValid = function (str) {
-    if (typeof value === 'undefined' || value === null) return false;
-    if (typeof value === 'string' && value.trim().length === 0) return false;
-    return true;
+const isValid = (value) => {
+    if (typeof value === "undefined" || value === null) return false
+    if (typeof value === "string" && value.trim().length === 0) return false
+    return true
 }
 const regex = /(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%.\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%\+.~#?&//=]*)/g
 
 const shortUrl = async function (req, res) {
     try{
-    const { longUrl } = req.body
-    if(!isValid(longUrl)) return res.status(400).send({ status: false, message: "LongUrl cannot be Empty" })
+    const longUrl  = req.body.longUrl
+    if (Object.keys(req.body).length == 0) {
+     return res.status(400).send({ status: false, msg: "Body should not be empty" })
+    }
+    if(!isValid(longUrl)) {
+        return res.status(400).send({ status: false, message: "LongUrl cannot be Empty" })
+    }
     
     if (!longUrl.match(regex)) return res.status(400).send({ status: false, message: "LongUrl is invalid" })
     const foundUrl = await urlModel.findOne({ longUrl })
     if (foundUrl){
-        const result = await urlModel.findOne(foundUrl)
-        const data = {
-            "urlCode": result.urlCode,
-            "longUrl": result.longUrl,
-            "shortUrl": result.shortUrl
+         const data = {
+            "urlCode": foundUrl.urlCode,
+            "longUrl": foundUrl.longUrl,
+            "shortUrl": foundUrl.shortUrl
         }
      return res.status(200).send({ status: true, message: "This url is already exist" ,data: data })
     }
@@ -39,7 +40,7 @@ const shortUrl = async function (req, res) {
         "shortUrl": result.shortUrl
     }
 
-    res.status(201).send({ data: data })
+    res.status(201).send({status:true,msg:"shortUrl is created", data: data })
 }catch(err){
     return res.status(500).send({status:false,message:err.message})
 }
