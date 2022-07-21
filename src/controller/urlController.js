@@ -13,11 +13,11 @@ const isValid = (value) => {
 
 
 const redisClient = redis.createClient(
-    13180,
-    "redis-13180.c212.ap-south-1-1.ec2.cloud.redislabs.com",
+    13615,
+    "redis-13615.c212.ap-south-1-1.ec2.cloud.redislabs.com",
     { no_ready_check: true }
 );
-redisClient.auth("X2LopUpqaXLNvOgWuKx3hCSjXEJh1wmz", function (err) {
+redisClient.auth("JJGdyCxAS9o1k9z6rM9a3uYbMgCAG1oW", function (err) {
     if (err) throw err;
 });
 
@@ -51,6 +51,7 @@ const shortUrl = async function (req, res) {
                 "shortUrl": finalResult.shortUrl
             }
             return res.status(200).send({ status: true, message: "This url is already exist", data: data })
+        
         } else {
             const foundUrl = await urlModel.findOne({ longUrl })
             if (foundUrl) {
