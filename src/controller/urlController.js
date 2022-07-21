@@ -25,11 +25,14 @@ redisClient.on("connect", async function () {
     console.log("Connected to Redis..");
 });
 
-const SET_ASYNC = promisify(redisClient.SET).bind(redisClient);
+const SETEX_ASYNC = promisify(redisClient.SETEX).bind(redisClient);
 const GET_ASYNC = promisify(redisClient.GET).bind(redisClient);
 
 
 const regex = /(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%.\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%\+.~#?&//=]*)/g
+
+
+//===================================Create Short URL===========================================
 
 const shortUrl = async function (req, res) {
     try {
@@ -55,11 +58,10 @@ const shortUrl = async function (req, res) {
                     "longUrl": foundUrl.longUrl,
                     "shortUrl": foundUrl.shortUrl
                 }
-                await SET_ASYNC(`${longUrl}`, JSON.stringify(data))
+                await SETEX_ASYNC(`${longUrl}`,600, JSON.stringify(data))
                 return res.status(200).send({ status: true, message: "This url is already exist", data: data })
             }
         }
-
 
         const urlCode = shortid.generate()
         const shortUrl = baseUrl + "/" + urlCode
@@ -76,6 +78,8 @@ const shortUrl = async function (req, res) {
     }
 }
 
+//===================================redirect Short URL on Long URL===========================================
+
 const urlCode = async function (req, res) {
     try {
         const urlCode = req.params.urlCode
@@ -89,7 +93,7 @@ const urlCode = async function (req, res) {
         } else {
             const foundCode = await urlModel.findOne({ urlCode: urlCode })
             if (!foundCode) return res.status(404).send({ status: false, message: "urlCode is not found" })
-            await SET_ASYNC(`${urlCode}`, JSON.stringify(foundCode))
+            await SETEX_ASYNC(`${urlCode}`,600, JSON.stringify(foundCode))
             return res.status(302).redirect(foundCode.longUrl)
         }
     } catch (err) {
