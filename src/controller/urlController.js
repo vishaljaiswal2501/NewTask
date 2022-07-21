@@ -2,6 +2,7 @@ const shortid = require('shortid')
 const urlModel = require('../model/urlModel')
 const baseUrl = 'http://localhost:3000'
 const redis = require("redis");
+const isURL = require('is-url');
 
 const { promisify } = require("util");
 
@@ -29,8 +30,6 @@ const SETEX_ASYNC = promisify(redisClient.SETEX).bind(redisClient);
 const GET_ASYNC = promisify(redisClient.GET).bind(redisClient);
 
 
-const regex = /(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%.\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%\+.~#?&//=]*)/g
-
 
 //===================================Create Short URL===========================================
 
@@ -44,7 +43,7 @@ const shortUrl = async function (req, res) {
             return res.status(400).send({ status: false, message: "LongUrl cannot be Empty" })
         }
 
-        if (!longUrl.match(regex)) return res.status(400).send({ status: false, message: "LongUrl is invalid" })
+        if (!isURL(longUrl)) return res.status(400).send({ status: false, message: "LongUrl is invalid" })
         let cahcedProfileData = await GET_ASYNC(`${longUrl}`)
         let finalResult = JSON.parse(cahcedProfileData)
         if (cahcedProfileData) {
