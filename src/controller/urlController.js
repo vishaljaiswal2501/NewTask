@@ -45,12 +45,8 @@ const shortUrl = async function (req, res) {
         let cahcedProfileData = await GET_ASYNC(`${longUrl}`)
         let finalResult = JSON.parse(cahcedProfileData)
         if (cahcedProfileData) {
-            const data = {
-                "urlCode": finalResult.urlCode,
-                "longUrl": finalResult.longUrl,
-                "shortUrl": finalResult.shortUrl
-            }
-            return res.status(200).send({ status: true, message: "This url is already exist", data: data })
+            
+            return res.status(200).send({ status: true, message: "This url is already exist", data: finalResult })
         } else {
             const foundUrl = await urlModel.findOne({ longUrl })
             if (foundUrl) {
@@ -59,7 +55,7 @@ const shortUrl = async function (req, res) {
                     "longUrl": foundUrl.longUrl,
                     "shortUrl": foundUrl.shortUrl
                 }
-                await SET_ASYNC(`${longUrl}`, JSON.stringify(foundUrl))
+                await SET_ASYNC(`${longUrl}`, JSON.stringify(data))
                 return res.status(200).send({ status: true, message: "This url is already exist", data: data })
             }
         }
