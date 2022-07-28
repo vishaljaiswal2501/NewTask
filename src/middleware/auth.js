@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const userModel = require('../models/userModel')
-const { isValidId } = require("../Validator/userValidation");
+const { isValidId } = require("../validator/validation");
 
 // Authentication
 const authentication = function (req, res, next) {
