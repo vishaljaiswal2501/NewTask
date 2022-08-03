@@ -8,6 +8,16 @@ const isValidRequest = function (data) {
   return true;
 };
 
+const isValidValue = function(data){
+  if(Object.values(data).length == 0) return false
+  if(Object.values(data).length > 0){
+    const found = Object.values(data).filter((value)=> value);
+    if(found.length == 0) return false
+  }
+  return true
+}
+
+
 const isValidString = function (value) {
   if (typeof value == undefined || value == null) return false;
   if (typeof value == "string" && value.trim().length == 0) return false;
@@ -59,16 +69,19 @@ const isValidprice = function (rating) {
 };
 
 //function for size verification
-const isValidSize = function (sizes) {
-  let existingSize = ["S", "XS", "M", "X", "L", "XXL", "XL"];
-  const sizeArr = sizes.split(",").map((size) => size.trim());
-  for (i = 0; i < sizeArr.length; i++) {
-    if (!existingSize.includes(sizeArr[i].trim())) {
-      return false;
-    }
+
+const isValidSize = function(size){
+  let existingSize = ["S", "XS","M","X", "L","XXL", "XL"]
+  
+  size = size.split(',')
+  for(i=0; i<size.length; i++){
+      if(!(existingSize.includes(size[i].trim()))){
+        return false
+      }
   }
-  return true;
-};
+ return true
+}
+
 
 module.exports = {
   isValidRequest,
@@ -82,4 +95,5 @@ module.exports = {
   isValidTitle,
   isValidprice,
   isValidSize,
+  isValidValue
 };

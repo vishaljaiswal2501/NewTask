@@ -365,7 +365,7 @@ const getUser = async function (req, res) {
 const updateUserProfile = async function (req, res) {
   try {
     //validating the requset body
-    if (!isValidRequest(req.body)) {
+    if (!isValidValue(req.body)) {
       return res
         .status(400)
         .send({ status: false, message: "Enter valid input" });
