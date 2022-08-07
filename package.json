@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Manasvi-Sharma29/Project-5-ProductManagement.git"
+    "url": "git+https://github.com/mepsbisht/project-5-productManagement.git"
   },
   "author": "\"Manasvi Sharma\"",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Manasvi-Sharma29/Project-5-ProductManagement/issues"
+    "url": "https://github.com/mepsbisht/project-5-productManagement/issues"
   },
-  "homepage": "https://github.com/Manasvi-Sharma29/Project-5-ProductManagement#readme",
+  "homepage": "https://github.com/mepsbisht/project-5-productManagement#readme",
   "dependencies": {
     "aws-sdk": "^2.1181.0",
     "bcrypt": "^5.0.1",
