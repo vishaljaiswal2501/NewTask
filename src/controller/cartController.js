@@ -10,7 +10,7 @@ const createCart = async function (req, res) {
       return res.status(400).send({ status: false, message: err.message });
     }
     let { cartId, productId, quantity } = req.body;
-    let data = { totalPrice: 0, totalItems: 1, items: [] };
+    let data = { totalPrice: 0, totalItems: 0, items: [] };
 
     if (!productId) {
       return res
@@ -223,7 +223,6 @@ const getCart = async function (req, res) {
     const findCart = await cartModel
       .findOne({
         userId: userId,
-        totalItems: { $gt: 0 },
       })
       .populate({
         path: "items.productId",

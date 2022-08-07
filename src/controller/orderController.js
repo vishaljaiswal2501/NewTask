@@ -36,11 +36,13 @@ const createOrder = async function (req, res) {
       }
     }
 
-    let findCart = await cartModel.findOne({
-      userId: userId,
-      cartId: cartId,
-      totalItems: { $gt: 0 },
-    });
+    let findCart = await cartModel
+      .findOne({
+        userId: userId,
+        cartId: cartId,
+        totalItems: { $gt: 0 },
+      })
+      .select({ _id: 0, __v: 0 });
     if (!findCart) {
       return res.status(404).send({
         status: false,
@@ -57,6 +59,8 @@ const createOrder = async function (req, res) {
     order.cancellable = cancellable;
 
     let createdOrder = await orderModel.create(order);
+    let obj = { userId: userId, totalItems: 0, totalPrice: 0, items: [] };
+    await cartModel.findByIdAndUpdate(cartId, { $set: obj });
     return res
       .status(201)
       .send({ status: true, message: "Success", data: createdOrder });
@@ -74,7 +78,7 @@ const updateOrder = async function (req, res) {
         .send({ status: false, message: "Please input valid request" });
     }
     let { orderId, status } = req.body;
-    let arr = ["pending", "completed", "cancelled"];
+    let arr = ["completed", "cancelled"];
     if (!orderId) {
       return res
         .status(400)
@@ -87,6 +91,11 @@ const updateOrder = async function (req, res) {
     }
 
     const findOrder = await orderModel.findById(orderId);
+    if (!findOrder) {
+      return res
+        .status(404)
+        .send({ status: false, message: "order not found" });
+    }
     if (findOrder.userId.toString() != userId) {
       return res.status(400).send({
         status: false,
@@ -106,14 +115,14 @@ const updateOrder = async function (req, res) {
         .send({ status: false, message: `status should only be ${arr}` });
     }
 
-    if (status == arr[2]) {
+    if (status == arr[1]) {
       if (findOrder.cancellable.toString() == "false") {
         return res
           .status(400)
           .send({ status: false, mesage: "this order is not cancellable" });
       }
     }
-    if (findOrder.status == arr[1]) {
+    if (findOrder.status == arr[0]) {
       return res
         .status(400)
         .send({ status: false, message: "order has already been completed" });

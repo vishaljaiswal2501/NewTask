@@ -6,6 +6,8 @@ const jwt = require("jsonwebtoken");
 const { uploadFiles } = require("../upload/upload");
 const mongoose = require("mongoose");
 
+
+// ======================================================create user API========================================================================
 const createUser = async function (req, res) {
   try {
     let { fname, lname, email, phone, password, address } = req.body;
@@ -279,6 +281,9 @@ const createUser = async function (req, res) {
   }
 };
 
+
+// ======================================================login user API========================================================================
+
 const loginUser = async function (req, res) {
   try {
     if (!isValidRequest(req.body)) {
@@ -332,10 +337,9 @@ const loginUser = async function (req, res) {
       {
         userId: user._id.toString(),
       },
-      "productManagement/13/dfis",
+      "productManagement/39",
       { expiresIn: "24h" }
     );
-    res.header("x-api-key", token);
     return res.status(200).send({
       status: true,
       message: "User login successfull",
@@ -357,7 +361,6 @@ const getUser = async function (req, res) {
       .status(200)
       .send({ status: true, message: "User profile details", data: userFound });
   } catch (error) {
-    console.log(error);
     return res.status(500).send({ status: false, message: error.message });
   }
 };

@@ -149,6 +149,8 @@ const createProduct = async function (req, res) {
     // Validating style if given
 
     if (style) {
+      style = style.trim();
+
       if (!isValidString(style) || !isValidName(style)) {
         return res
           .status(400)
