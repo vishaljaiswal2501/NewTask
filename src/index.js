@@ -5,8 +5,6 @@ const { default: mongoose } = require('mongoose');
 const app = express();
 app.use(express.json())
 
-app.set()
-
 mongoose.connect("mongodb://localhost:27017", {
     useNewUrlParser: true
 })
